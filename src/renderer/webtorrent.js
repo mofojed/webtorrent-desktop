@@ -48,6 +48,8 @@ function init () {
     stopTorrenting(infoHash))
   ipc.on('wt-create-torrent', (e, torrentKey, options) =>
     createTorrent(torrentKey, options))
+  ipc.on('wt-create-torrent-library', (e, torrentKey) =>
+    createTorrentLibrary(torrentKey))
   ipc.on('wt-save-torrent-file', (e, torrentKey) =>
     saveTorrentFile(torrentKey))
   ipc.on('wt-generate-torrent-poster', (e, torrentKey) =>
@@ -100,6 +102,44 @@ function createTorrent (torrentKey, options) {
   console.log('creating torrent', torrentKey, options)
   var paths = options.files.map((f) => f.path)
   var torrent = client.seed(paths, options)
+  torrent.key = torrentKey
+  addTorrentEvents(torrent)
+  ipc.send('wt-new-torrent')
+}
+
+// Create a new library torrent, start seeding
+function createTorrentLibrary (torrentKey) {
+  console.log('creating torrent library', torrentKey)
+  var name = '[My Torrent Library]'
+  var files = [];
+  var torrents = client.torrents
+  torrents.forEach(function(torrent) {
+    if (torrent.name !== name) {
+      var file = torrent.torrentFile;
+      file.name = '' + torrent.infoHash + '.torrent'
+      files.push(file)
+    }
+  })
+
+  var options = {
+                name: name,
+                announce: [ 
+                  "udp://exodus.desync.com:6969",
+                  "udp://tracker.coppersurfer.tk:6969",
+                  "udp://tracker.internetwarriors.net:1337",
+                  "udp://tracker.leechers-paradise.org:6969",
+                  "udp://tracker.openbittorrent.com:80",
+                  "wss://tracker.btorrent.xyz",
+                  "wss://tracker.fastcast.nz",
+                  "wss://tracker.webtorrent.io",
+                  "wss://tracker.openwebtorrent.com"
+                ],
+                private: false,
+                comment: 'Auto generated library torrent of other torrents'
+              }
+
+  // var paths = options.files.map((f) => f.path)
+  var torrent = client.seed(files, options)
   torrent.key = torrentKey
   addTorrentEvents(torrent)
   ipc.send('wt-new-torrent')

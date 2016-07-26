@@ -159,7 +159,8 @@ const dispatchHandlers = {
 
   'addTorrent': (torrentId) => controllers.torrentList.addTorrent(torrentId),
   'showCreateTorrent': (paths) => controllers.torrentList.showCreateTorrent(paths),
-  'showCreateLibrary': (paths) => controllers.torrentList.showCreateLibrary(paths),
+  'createTorrentsFromDirectories': (paths) => controllers.torrentList.createTorrentsFromDirectories(paths),
+  'createTorrentLibrary': () => controllers.torrentList.createTorrentLibrary(),
   'toggleCreateTorrentAdvanced': () => controllers.torrentList.toggleCreateTorrentAdvanced(),
   'createTorrent': (options) => controllers.torrentList.createTorrent(options),
   'toggleTorrent': (infoHash) => controllers.torrentList.toggleTorrent(infoHash),

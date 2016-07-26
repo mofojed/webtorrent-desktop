@@ -100,6 +100,10 @@ function getMenuTemplate () {
           click: () => dialog.openLibraryDirectory()
         },
         {
+          label: 'Create Torrent Library',
+          click: () => dialog.createTorrentLibrary()
+        },
+        {
           type: 'separator'
         },
         {

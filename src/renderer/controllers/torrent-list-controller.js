@@ -56,7 +56,7 @@ module.exports = class TorrentListController {
   }
 
   // creates a whole bunch of torrents 
-  showCreateLibrary (files) {
+  createTorrentsFromDirectories (files) {
     findDirectoriesRecursive(files, function(dirPaths) {
       dirPaths.forEach(function (dirPath) {
         filesInDir(dirPath, function(files) {
@@ -113,6 +113,16 @@ module.exports = class TorrentListController {
     var state = this.state
     var torrentKey = state.nextTorrentKey++
     ipcRenderer.send('wt-create-torrent', torrentKey, options)
+    state.location.backToFirst(function () {
+      state.location.clearForward('create-torrent')
+    })
+  }
+
+  // Creates a library torrent file
+  createTorrentLibrary () {
+    var state = this.state
+    var torrentKey = state.nextTorrentKey++
+    ipcRenderer.send('wt-create-torrent-library', torrentKey)
     state.location.backToFirst(function () {
       state.location.clearForward('create-torrent')
     })

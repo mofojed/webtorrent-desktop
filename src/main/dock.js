@@ -58,6 +58,10 @@ function getMenuTemplate () {
     {
       label: 'Open Library Directory...',
       click: () => dialog.openLibraryDirectory()
+    },
+    {
+      label: 'Create Torrent Library',
+      click: () => dialog.createTorrentLibrary()
     }
   ]
 }

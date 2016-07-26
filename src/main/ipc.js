@@ -48,6 +48,7 @@ function init () {
   ipc.on('openTorrentFile', () => dialog.openTorrentFile())
   ipc.on('openFiles', () => dialog.openFiles())
   ipc.on('openLibraryDirectory', () => dialog.openLibraryDirectory())
+  ipc.on('createTorrentLibrary', () => dialog.createTorrentLibrary())
 
   /**
    * Dock

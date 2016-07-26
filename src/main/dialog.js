@@ -1,4 +1,5 @@
 module.exports = {
+  createTorrentLibrary,
   openSeedFile,
   openSeedDirectory,
   openTorrentFile,
@@ -125,8 +126,15 @@ function openLibraryDirectory () {
   electron.dialog.showOpenDialog(windows.main.win, opts, function (selectedPaths) {
     resetTitle()
     if (!Array.isArray(selectedPaths)) return
-    windows.main.dispatch('showCreateLibrary', selectedPaths)
+    windows.main.dispatch('createTorrentsFromDirectories', selectedPaths)
   })
+}
+
+function createTorrentLibrary () {
+  if (!windows.main.win) return
+  log('createTorrentLibrary')
+
+  windows.main.dispatch('createTorrentLibrary')
 }
 
 /**
