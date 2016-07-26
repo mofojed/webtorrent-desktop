@@ -96,6 +96,10 @@ function getMenuTemplate () {
           click: () => dialog.openTorrentAddress()
         },
         {
+          label: 'Open Library Directory...',
+          click: () => dialog.openLibraryDirectory()
+        },
+        {
           type: 'separator'
         },
         {

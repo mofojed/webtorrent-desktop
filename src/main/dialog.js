@@ -3,6 +3,7 @@ module.exports = {
   openSeedDirectory,
   openTorrentFile,
   openTorrentAddress,
+  openLibraryDirectory,
   openFiles
 }
 
@@ -106,6 +107,26 @@ function openTorrentFile () {
 function openTorrentAddress () {
   log('openTorrentAddress')
   windows.main.dispatch('openTorrentAddress')
+}
+
+function openLibraryDirectory () {
+  if (!windows.main.win) return
+  log('openLibraryDirectory')
+  var opts = process.platform === 'darwin'
+    ? {
+      title: 'Select the folder for your media library.',
+      properties: [ 'openDirectory' ]
+    }
+    : {
+      title: 'Select the folder for your media library.',
+      properties: [ 'openDirectory' ]
+    }
+  setTitle(opts.title)
+  electron.dialog.showOpenDialog(windows.main.win, opts, function (selectedPaths) {
+    resetTitle()
+    if (!Array.isArray(selectedPaths)) return
+    windows.main.dispatch('showCreateLibrary', selectedPaths)
+  })
 }
 
 /**

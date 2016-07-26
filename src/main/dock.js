@@ -54,6 +54,10 @@ function getMenuTemplate () {
       label: 'Open Torrent Address...',
       accelerator: 'CmdOrCtrl+U',
       click: () => dialog.openTorrentAddress()
+    },
+    {
+      label: 'Open Library Directory...',
+      click: () => dialog.openLibraryDirectory()
     }
   ]
 }

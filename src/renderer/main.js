@@ -153,11 +153,13 @@ function updateElectron () {
 const dispatchHandlers = {
   // Torrent list: creating, deleting, selecting torrents
   'openTorrentFile': () => ipcRenderer.send('openTorrentFile'),
+  'openLibraryDirectory': () => ipcRenderer.send('openLibraryDirectory'),
   'openFiles': () => ipcRenderer.send('openFiles'), /* shows the open file dialog */
   'openTorrentAddress': () => { state.modal = { id: 'open-torrent-address-modal' } },
 
   'addTorrent': (torrentId) => controllers.torrentList.addTorrent(torrentId),
   'showCreateTorrent': (paths) => controllers.torrentList.showCreateTorrent(paths),
+  'showCreateLibrary': (paths) => controllers.torrentList.showCreateLibrary(paths),
   'toggleCreateTorrentAdvanced': () => controllers.torrentList.toggleCreateTorrentAdvanced(),
   'createTorrent': (options) => controllers.torrentList.createTorrent(options),
   'toggleTorrent': (infoHash) => controllers.torrentList.toggleTorrent(infoHash),

@@ -55,6 +55,52 @@ module.exports = class TorrentListController {
     findFilesRecursive(files, (allFiles) => this.showCreateTorrent(allFiles))
   }
 
+  // creates a whole bunch of torrents 
+  showCreateLibrary (files) {
+    findDirectoriesRecursive(files, function(dirPaths) {
+      dirPaths.forEach(function (dirPath) {
+        filesInDir(dirPath, function(files) {
+          // TODO: For some reason, if we only pass one file, webtorrent gets messed up and doesn't seed properly
+          // Should probably fix that, but for now... it's fine if only folders with multiple files are tracked, for testing purposes
+          if (1 < files.length) {
+            var torrent = {
+              name: path.basename(dirPath),
+              path: path.dirname(dirPath),
+              files: files,
+              announce: [ 
+                "udp://exodus.desync.com:6969",
+                "udp://tracker.coppersurfer.tk:6969",
+                "udp://tracker.internetwarriors.net:1337",
+                "udp://tracker.leechers-paradise.org:6969",
+                "udp://tracker.openbittorrent.com:80",
+                "wss://tracker.btorrent.xyz",
+                "wss://tracker.fastcast.nz",
+                "wss://tracker.webtorrent.io",
+                "wss://tracker.openwebtorrent.com"
+              ],
+              private: false,
+              comment: ''
+            }
+            dispatch('createTorrent', torrent)
+          }
+        })
+      })
+    })
+// var options = {
+//         // We can't let the user choose their own name if we want WebTorrent
+//         // to use the files in place rather than creating a new folder.
+//         // If we ever want to add support for that:
+//         // name: document.querySelector('.torrent-name').value
+//         name: defaultName,
+//         path: basePath,
+//         files: files,
+//         announce: announceList,
+//         private: isPrivate,
+//         comment: comment
+//       }
+//       dispatch('createTorrent', options)
+  }
+
   // Switches between the advanced and simple Create Torrent UI
   toggleCreateTorrentAdvanced () {
     var info = this.state.location.current()
@@ -200,6 +246,40 @@ module.exports = class TorrentListController {
   }
 }
 
+// Returns the files from a dir. does not go recursively
+function filesInDir (dirPath, cb) {
+  fs.stat(dirPath, function (err, stat) {
+    if (err) return dispatch('error', err)
+    if (!stat.isDirectory()) return dispatch('error', new Error('Invalid directory passed to filesInDir: ' + dirPath))
+
+    fs.readdir(dirPath, function(err, fileNames) {
+      if (err) return dispatch('error', err)
+
+      var numComplete = 0
+      var ret = []
+      fileNames.forEach(function (fileName) {
+        var filePath = path.join(dirPath, fileName)
+        fs.stat(filePath, function(err, stat) {
+          if (err) return dispatch('error', err)
+
+          if (!stat.isDirectory() && 0 < fileName.length && fileName.substr(0, 1) !== '.') {
+            ret.push({
+              name: path.basename(filePath),
+              path: filePath,
+              size: stat.size
+            })
+          }
+
+          if (++numComplete === fileNames.length) {
+            ret.sort((a, b) => a.path < b.path ? -1 : a.path > b.path)
+            cb(ret)
+          }
+        })
+      })
+    })
+  })
+}
+
 // Recursively finds {name, path, size} for all files in a folder
 // Calls `cb` on success, calls `onError` on failure
 function findFilesRecursive (paths, cb) {
@@ -238,6 +318,120 @@ function findFilesRecursive (paths, cb) {
       if (err) return dispatch('error', err)
       var paths = fileNames.map((fileName) => path.join(folderPath, fileName))
       findFilesRecursive(paths, cb)
+    })
+  })
+}
+
+// returns all the paths of all the directories with more than 0 files (not subdirectories) in them
+// recurses through all subdirectories, each subdirectory counts as another directory
+// @return directory paths of all non-empty directories, including sub-directories
+function findDirectoriesRecursive (dirPaths, cb) {
+  if (dirPaths.length > 1) {
+    var numComplete = 0
+    var ret = []
+
+    dirPaths.forEach(function (dirPath) {
+      findDirectoriesRecursive([dirPath], function(dirs) {
+        ret = ret.concat(dirs)
+        if (++numComplete === dirPaths.length) {
+          cb(ret)
+        }
+      })
+    })
+    return
+  }
+
+  var dirPath = dirPaths[0]
+  fs.stat(dirPath, function(err, stat) {
+    if (err) return dispatch('error', err)
+
+    if (!stat.isDirectory()) {
+      return cb([]);
+    } else {
+      fs.readdir(dirPath, function (err, fileNames) {
+        if (err) return dispatch('error', err)
+
+        if (0 === fileNames.length) {
+          return cb([])
+        } else {
+          // TODO: Something is messed up here....
+          // /Users/bender/Music/iTunes/iTunes Media/Music/Users/bender/Music/iTunes/iTunes Media/Music/Users/bender/Music/iTunes/iTunes Media/Music/Radiohead/OK Computer"
+          var subPaths = fileNames.map((fileName) => path.join(dirPath, fileName))
+          findDirectoriesRecursive(subPaths, function(dirs) {
+            var ret = [dirPath]
+            ret = ret.concat(dirs)
+            return cb(ret)
+          })
+        }
+      })
+    }
+  })
+}
+
+function makeTorrentObjsRecursive(paths, cb) {
+  paths = paths.slice();
+
+  if (1 < paths.length) {
+    var numComplete = 0
+    var ret = []
+    paths.forEach(function (path) {
+      makeTorrentObjsRecursive([path], function(torrentObjs) {
+        ret = ret.concat(torrentObjs);
+        if (++numComplete === paths.length) {
+          ret.sort((a,b) => a.name < b.name ? -1 : a.name > b.name)
+          cb(ret)
+        }
+      })
+    })
+    return
+  }
+
+  var dir = paths[0];
+  fs.stat(dir, function(err, stat) {
+    if (err) return dispatch('error', err)
+    if (!stat.isDirectory())  return cb(null)
+
+    fs.readdir(dir, function (err, fileNames) {
+      if (err) return dispatch('error', err)
+
+      var numComplete = 0
+      var ret = []
+      var files = []
+
+      fileNames.forEach(function (fileName) {
+        var filePath = path.join(dir, fileName)
+        makeTorrentObjsRecursive([filePath], function(torrentObjs) {
+          if (null != torrentObjs) {
+            ret = ret.concat(torrentObjs)
+          } else {
+            files.push({
+              name: fileName,
+              path: filePath
+            })
+          }
+
+          if (++numComplete === fileNames.length) {
+            ret.push({
+              name: dir,
+              path: dir,
+              files: files,
+              announce: [ 
+                "udp://exodus.desync.com:6969",
+                "udp://tracker.coppersurfer.tk:6969",
+                "udp://tracker.internetwarriors.net:1337",
+                "udp://tracker.leechers-paradise.org:6969",
+                "udp://tracker.openbittorrent.com:80",
+                "wss://tracker.btorrent.xyz",
+                "wss://tracker.fastcast.nz",
+                "wss://tracker.webtorrent.io",
+                "wss://tracker.openwebtorrent.com"
+              ]
+            })
+            ret.sort((a,b) => a.name < b.name ? -1 : a.name > b.name)
+            cb(ret)
+          }
+        })
+      })
     })
   })
 }
