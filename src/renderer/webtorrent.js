@@ -69,7 +69,8 @@ function init () {
     ipc.send('wt-uncaught-error', {message: e.error.message, stack: e.error.stack}),
     true)
 
-  setInterval(updateTorrentProgress, 1000)
+  // TODO: Re-enable this - just checking if this reduces CPU usage at all
+  // setInterval(updateTorrentProgress, 1000)
 }
 
 // Starts a given TorrentID, which can be an infohash, magnet URI, etc. Returns WebTorrent object
