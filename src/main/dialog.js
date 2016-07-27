@@ -138,7 +138,7 @@ function createTorrentLibrary () {
 }
 
 /**
- * Dialogs on do not show a title on OS X, so the window title is used instead.
+ * Dialogs on do not show a title on Mac, so the window title is used instead.
  */
 function setTitle (title) {
   if (process.platform === 'darwin') {

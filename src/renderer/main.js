@@ -146,7 +146,7 @@ function updateElectron () {
   }
   if (state.dock.badge !== state.prev.badge) {
     state.prev.badge = state.dock.badge
-    ipcRenderer.send('setBadge', state.dock.badge || '')
+    ipcRenderer.send('setBadge', state.dock.badge || 0)
   }
 }
 
@@ -419,7 +419,7 @@ function onVisibilityChange () {
 function onFullscreenChanged (e, isFullScreen) {
   state.window.isFullScreen = isFullScreen
   if (!isFullScreen) {
-    // Aspect ratio gets reset in fullscreen mode, so restore it (OS X)
+    // Aspect ratio gets reset in fullscreen mode, so restore it (Mac)
     ipcRenderer.send('setAspectRatio', state.playing.aspectRatio)
   }
 
